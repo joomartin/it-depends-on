@@ -97,4 +97,5 @@ Kb a következő osztályok lesznek:
 
 Todo:
 - Factory osztályok / objektumok készítése
+- Array helyett Illuminate/Collection
 - Tesztek írása
