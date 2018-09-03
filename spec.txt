@@ -1,0 +1,94 @@
+a program kap két útvonalat
+ - egyet a bemenetnek --in
+ - egyet a kimenetnek --out
+ebből rekurzívan beolvassa az összes php filet
+ezeket a fileokat beparsolja valamilyen php parser segítsgével
+a parseolt forrásból, begyűjti a dependency infókat (első körben cask a use utasításokat)
+minden beolvasott osztályról generál egy html -t a megadott kimeneti útvonalra ugyanpolyan struktúrában, mint az input
+tehát, input:
+ /src
+    /Model
+      - Product.php
+      - Order.php
+    /app.php
+
+Ebből generált kimenet:
+ /src
+    /Model
+     - Product.php.html
+     - Order.php.html
+    /app.php.html
+
+php it-depends-on -i '/Users/joomartin/code/blah/src' -o '/Users/joomartin/Documents/dependency'
+
+Egy ilyen futtatás esetén a /Users/joomartin/Documents/dependency -n belül létrejön egy src mappa, ami egy-az-egyben leképezi a '/Users/joomartin/code/blah/src' tartalmát.
+
+----
+
+Főbb modulok:
+
+File kezelés
+ - input beolvasása
+ - output írása
+
+Parser
+ - külső package
+ - köré valamilyen wrapper (ha szükséges)
+
+Dependency detektor
+ - a parseolt forrásból előállít valamilyen adatszerkezetet, ami tartalmazza a bemenet függőségeit
+ - pl megkapja a parseolt forrást, és visszaad egy tree -t, amiben egy elemnek szerepel az összes függősége, és a tőle fűggő modulok is
+
+HTML generátor
+ - Nyers adatokból HTML kódot generál, amit aztán az outputba lehet írni
+
+Pipeline:
+Input beolvasása -> Forrás parseolása -> Függőségek detektálása -> HTML generálása -> HTML írása outputba
+
+----
+
+File kezelés
+Input olvasása
+
+Kap egy útvonalat, és egyesével beolvassa az ott található mappákat és fileokat rekurzívan. Csak php fileokat keres.
+
+Itt már valszeg a fileok tartalmát is be kell ovlasni, mert a Parser (valószínű) úgy működik, hogy stringet vár bemenetnek (tehát a file tartalmát).
+
+Mivel itt be kell olvasni a fileok tartalmát, amiből sok lehet, és nagyok is lehetnek, valószínűleg célszerűbb lesz ezt fileonkánt csinálni. Tehát:
+- A verzió: az ÖSSZES file tartalmát beolvassa, és utána ezeket fogja tovább adni parsernek
+- B verzió: egy időben CSAK egy filet olvas be, és mehet tovább parsernek. Majd utána jöhet a következő file
+
+Mivel minden szinkron fut, proc miatt majdnem mindegy melyik változat megy, viszont a B jóval kevesebb ramot fog használni, és egy kicsit reszponzívabb is, hogy kis lépésekben, fileonként készül a kimenet, amiről lehet feedbacket is adni.
+
+ITERATOR
+Ha így egyesével fog működni, akkor a normális használhatóság érdekében, ezt érdemes lesz iterátorral megoldani, és így mint egy listán véglehet menni, és mindig beolvassa a következő file tartalmát.
+Ez azt jelenti, hogy akkor a File kezelőnek, először fel kell deríteni az útvonalon található fileokat, mappákat, és az iterátor ebből a listából fog dolgozni.
+
+Milyen típusú elemeket tartalmazzon ez az adatszerkezet?
+- SplFileInfo
+- Saját típus
+- string
+
+A típus meghatározásához tudni kell, hogy mire szeretném ezeket használni, milyen műveleteket hajtunk végre ezekene az adatokon?
+- A parsernek adjuk oda egy adott file tartalmát, hogy abból készítsen egy másik adatszerkezetet. Ehhez csak a file tartalma kell.
+- A folyamat utolsó lépése a 'HTML írása outputba' lesz. Itt a File kezelőnek tudni kell, hogy mi a cél file. Ezt pedig az input file határozza meg. Ehhez a file teljes útvonala kell.  (igazából elég a relatív, de elfér)
+
+Tehát egy saját típusra lesz szükség:
+- file tartalma: string
+- file elérési útvonal: string
+
+**Konklúzió: Lesz egy iterátorként működő objektum, ami mindig visszaadja egyetlen file tartalmát és elérési útjűt, egy saját típusként. Példányosításkor kiolvassuk az útvonal tartalmát, ezt betöltjük egy belső arraybe, és az iterátor ebből fog dolgozni.**
+
+Belső array szerkezete:
+Ideális esetben az iterátor egy 1-d szimpla string arrayen dolgozik. És ezt kibaszott egyszerűen meg is lehet csinálni. Amikor példányosítunk egy ilyen objektumot, beolvassuk az input útvonalat, és egy szimple egy dimenziós string array -ként fogjuk reprezentálni.
+
+----
+
+taskok:
+- Keresni Parser libet. https://github.com/nikic/PHP-Parser
+- Megnézni / tesztelni hogy működik iterátor    
+- Megírni file kezelő 'read' függvényét.
+
+Kb a következő osztályok lesznek:
+- FileReader: beolvassa az input path tartalmát
+- FileIterator: Egyesével beolvassa a fileok tartalmát. A fileok listáját a readertől kéri el.
