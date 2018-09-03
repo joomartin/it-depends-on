@@ -92,3 +92,9 @@ taskok:
 Kb a következő osztályok lesznek:
 - FileReader: beolvassa az input path tartalmát
 - FileIterator: Egyesével beolvassa a fileok tartalmát. A fileok listáját a readertől kéri el.
+
+----
+
+Todo:
+- Factory osztályok / objektumok készítése
+- Tesztek írása

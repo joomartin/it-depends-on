@@ -14,6 +14,11 @@
             "ItDependsOn\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "ItDependsOn\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "nikic/php-parser": "^4.0"
     }
