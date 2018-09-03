@@ -2,23 +2,14 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
+use PhpParser\NodeDumper;
 use ItDependsOn\FileUtils\FileReader;
 use ItDependsOn\FileUtils\FileIterator;
-use ItDependsOn\DependencyParser\PhpDependencyParser;
+use ItDependsOn\DependencyParser\DependencyParserFactory;
 
-use PhpParser\ParserFactory;
-use PhpParser\NodeDumper;
-use PhpParser\NodeFinder;
-use ItDependsOn\DependencyParser\Adapter\PhpParserAdapter;
-use ItDependsOn\DependencyParser\Adapter\NodeFinderAdapter;
-
-$parserAdapter = new PhpParserAdapter((new ParserFactory)->create(ParserFactory::PREFER_PHP7));
-$nodeFinderAdapter = new NodeFinderAdapter(new NodeFinder);
-
-$parser = new PhpDependencyParser($parserAdapter, $nodeFinderAdapter);
-
-$fileReader = new FileReader('C:code\it-depends-on\src\DependencyParser', ['php']);
-$fileIterator = new FileIterator($fileReader);
+$parser = DependencyParserFactory::createParser();
+$fileIterator = new FileIterator(
+    new FileReader('/Users/joomartin/code/it-depends-on/src/DependencyParser', ['php']));
 
 $dumper = new NodeDumper;
 
