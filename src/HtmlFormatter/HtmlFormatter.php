@@ -6,6 +6,6 @@ class HtmlFormatter
 {
     public function getHtml(array $dependencies): string
     {
-        return join(' ', $dependencies);
+        return join('<br>', $dependencies);
     }
 }
