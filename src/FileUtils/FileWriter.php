@@ -34,6 +34,11 @@ class FileWriter
 
     protected function createDirectories(string $path)
     {
+        /**
+         * @todo a projekt mappát is hozza létre, ha kell
+         * teht ha az output path: /Users/joomartin/output
+         * és az output mappa nem létezik
+         */
         $notExistingDirectoryPath = substr($path, strlen($this->outputPath . DIRECTORY_SEPARATOR));
 
         /**
