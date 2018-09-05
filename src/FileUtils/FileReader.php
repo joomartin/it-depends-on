@@ -17,6 +17,9 @@ class FileReader
     {
         $fileInfo = new \SplFileInfo($dir);
 
+        /**
+         * @todo nem létező path -ra is ezt a hibát dobja
+         */
         if (!$fileInfo->isDir()) throw new \InvalidArgumentException("The given path was a file");
 
         $this->dir = $dir;    

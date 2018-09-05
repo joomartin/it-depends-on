@@ -99,3 +99,15 @@ Todo:
 - Factory osztályok / objektumok készítése
 - Array helyett Illuminate/Collection
 - Tesztek írása
+
+----
+
+Függőség detektálás
+Két típusú függőség lesz:
+- Injektált: olyan dependency, amit egy függvény kap paraméterben
+- Inline: olyan dependency, amit egy függvény hoz létre
+
+Kiolvassuk az osztály elején található use listát. Ezt felsoroljuk.
+Ezenkívül pedig végnézzük az összes függvényt, és megkeressük az injektált és inline dependencyket.
+
+Ehhez kell egy Dpeendency konténer osztály.

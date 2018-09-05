@@ -12,7 +12,8 @@ use ItDependsOn\HtmlFormatter\HtmlFormatter;
 //$inputPath = 'C:\code\it-depends-on\src\DependencyParser';
 //$outputPath = 'C:\output';
 
-$inputPath = '/Users/joomartin/code/it-depends-on/src/DependencyParser';
+// $inputPath = '/Users/joomartin/code/it-depends-on/src/DependencyParser';
+$inputPath = '/Users/joomartin/code/it-depends-on/sample';
 $outputPath = '/Users/joomartin/output';
 
 $fileWriter = new FileWriter($inputPath, $outputPath);
