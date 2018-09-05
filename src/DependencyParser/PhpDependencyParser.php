@@ -10,6 +10,9 @@ use ItDependsOn\DependencyParser\Dto\Dependency;
 
 class PhpDependencyParser
 {
+    const TYPE_INJECTED = 'injected';
+    const TYPE_INLINE = 'inline';
+
     /**
      * @param PhpParserAdapter
      */
@@ -81,7 +84,7 @@ class PhpDependencyParser
             /** @var MethodDependency $methodDep */
             foreach ($methodDep->dependencies as $d) {
                 if (!array_key_exists($d, $dependencies)) 
-                    $dependencies[$d] = new Dependency($d, 'injected');
+                    $dependencies[$d] = new Dependency($d, self::TYPE_INJECTED);
 
                 $dependencies[$d]->addMethod($methodDep->method);
             }            
