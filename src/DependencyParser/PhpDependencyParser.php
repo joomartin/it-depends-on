@@ -5,6 +5,8 @@ namespace ItDependsOn\DependencyParser;
 use ItDependsOn\DependencyParser\Adapter\PhpParserAdapter;
 use ItDependsOn\DependencyParser\Adapter\NodeFinderAdapter;
 use PhpParser\NodeDumper;
+use ItDependsOn\DependencyParser\Dto\MethodDependency;
+use ItDependsOn\DependencyParser\Dto\Dependency;
 
 class PhpDependencyParser
 {
@@ -34,8 +36,7 @@ class PhpDependencyParser
 
     protected function getAllDependency(array $ast): array
     {
-        $this->getInjectedDependencies($ast);
-        //return $this->getUsedDependencies($ast);
+        return $this->getInjectedDependencies($ast);
     }
 
     /**
@@ -44,34 +45,16 @@ class PhpDependencyParser
     protected function getInjectedDependencies(array $ast): array
     {
         $methods = $this->getMethodsWithInjectedDependencies($ast);
-        var_dump($methods);
-        exit;
-
-        /**
-         * Output:
-         * - Lista, amiben szerepel az összes EGYEDI függőség
-         * - Az is kell, hogy ezek milyen metódusokban jelennek meg
-         * 
-         * [
-         *      {
-         *          "dependency": "Foo\Bar",
-         *          "methods": ["__construct", "doThing"],
-         *          "type": "injected"
-         *      }
-         * ]
-         */
+        return $this->getUniqueDependenciesByMethods($methods);
     }
 
     protected function getMethodsWithInjectedDependencies(array $ast): array
     {
         $classMethods = $this->nodeFinder->findInstanceOf($ast, NodeFinderAdapter::CLASS_METHOD_INSTANCE);
-        $data = [];
+        $methodDependencies = [];
 
         foreach ($classMethods as $classMethod) {
-            $tmp = [
-                'method'        => $classMethod->name->name,
-                'dependencies'  => []
-            ];
+            $methodDependency = new MethodDependency($classMethod->name->name);
 
             foreach ($classMethod->params as $param) {                            
                 $name = $this->nodeFinder->findInstanceOf($param, NodeFinderAdapter::USE_NAME_INSTANCE);
@@ -79,15 +62,32 @@ class PhpDependencyParser
                 // if no Node\Name found for this parameter, then it's a simple scalar type paramter
                 if (empty($name)) 
                     continue;
-                
-                $tmp['dependencies'][] = join('\\', $name[0]->parts);
+
+                $methodDependency->addParts($name[0]->parts);
             }
 
-            if (!empty($tmp['dependencies'])) 
-                $data[] = $tmp;            
+            if ($methodDependency->hasDependencies()) 
+                $methodDependencies[] = $methodDependency;            
         }
 
-        return $data;
+        return $methodDependencies;
+    }
+
+    protected function getUniqueDependenciesByMethods(array $methodDependencies): array
+    {
+        $dependencies = [];
+
+        foreach ($methodDependencies as $methodDep) {
+            /** @var MethodDependency $methodDep */
+            foreach ($methodDep->dependencies as $d) {
+                if (!array_key_exists($d, $dependencies)) 
+                    $dependencies[$d] = new Dependency($d, 'injected');
+
+                $dependencies[$d]->addMethod($methodDep->method);
+            }            
+        }
+
+        return $dependencies;
     }
 
     /**

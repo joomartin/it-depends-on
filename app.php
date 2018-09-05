@@ -25,7 +25,9 @@ $dumper = new NodeDumper;
 
 foreach ($fileIterator as $file)
 {
+    /** @var Dependency[] $dependencies */
     $dependencies = $parser->parse($file->content);
+    var_dump($dependencies);
 
     $html = (new HtmlFormatter)->getHtml($dependencies);
     $fileWriter->write($file->path, $html);

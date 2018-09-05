@@ -1,7 +1,22 @@
 <h1>Dependencies</h1>
 
 <table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Methods</th>
+    </tr>
     {% for dep in dependencies %}
-    <tr><td>{{ dep }}<td></tr>
+    <tr>
+        <td>{{ dep.name }}</td>
+        <td>{{ dep.type }}</td>
+        <td>
+            <ul>
+                {% for m in dep.methods %}
+                <li>{{ m }}</li>
+                {% endfor %}        
+            </ul>            
+        </td>
+    </tr>
     {% endfor %}
 </table>
