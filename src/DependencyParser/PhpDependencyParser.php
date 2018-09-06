@@ -39,7 +39,14 @@ class PhpDependencyParser
 
     protected function getAllDependency(array $ast): array
     {
-        return $this->getInjectedDependencies($ast);
+        $inline = $this->getInlineDependencies($ast);
+        $injected = $this->getInjectedDependencies($ast);
+
+        /**
+         * @todo unique merge
+         */
+
+        return array_merge($inline, $injected);
     }
 
     /**
@@ -48,7 +55,16 @@ class PhpDependencyParser
     protected function getInjectedDependencies(array $ast): array
     {
         $methods = $this->getMethodsWithInjectedDependencies($ast);
-        return $this->getUniqueDependenciesByMethods($methods);
+        return $this->getUniqueDependenciesByMethods($methods, self::TYPE_INJECTED);
+    }
+
+    /**
+     * Returns all class names that created in any method
+     */
+    protected function getInlineDependencies(array $ast): array
+    {
+        $methods = $this->getMethodsWithInlineDependencies($ast);
+        return $this->getUniqueDependenciesByMethods($methods, self::TYPE_INLINE);
     }
 
     protected function getMethodsWithInjectedDependencies(array $ast): array
@@ -76,7 +92,7 @@ class PhpDependencyParser
         return $methodDependencies;
     }
 
-    protected function getUniqueDependenciesByMethods(array $methodDependencies): array
+    protected function getUniqueDependenciesByMethods(array $methodDependencies, string $type): array
     {
         $dependencies = [];
 
@@ -84,13 +100,37 @@ class PhpDependencyParser
             /** @var MethodDependency $methodDep */
             foreach ($methodDep->dependencies as $d) {
                 if (!array_key_exists($d, $dependencies)) 
-                    $dependencies[$d] = new Dependency($d, self::TYPE_INJECTED);
+                    $dependencies[$d] = new Dependency($d, $type);
 
                 $dependencies[$d]->addMethod($methodDep->method);
             }            
         }
 
         return $dependencies;
+    }
+
+    protected function getMethodsWithInlineDependencies(array $ast): array
+    {
+        $classMethods = $this->nodeFinder->findInstanceOf($ast, NodeFinderAdapter::CLASS_METHOD_INSTANCE);
+        $methodDependencies = [];
+
+        foreach ($classMethods as $classMethod) {
+            $methodDependency = new MethodDependency($classMethod->name->name);
+
+            $newExpressions = $this->nodeFinder->findInstanceOf($classMethod->stmts, NodeFinderAdapter::NEW_EXPR);            
+
+            if (empty($newExpressions)) 
+                continue;
+
+            $methodDependency->addParts($newExpressions[0]->class->parts);
+            $methodDependencies[] = $methodDependency;
+        }
+
+        return $methodDependencies;
+
+         /** 
+         * @todo Probably won't work with stuff like (new Thing)->doStuff()
+         */
     }
 
     /**
