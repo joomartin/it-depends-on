@@ -122,15 +122,13 @@ class PhpDependencyParser
             if (empty($newExpressions)) 
                 continue;
 
-            $methodDependency->addParts($newExpressions[0]->class->parts);
+            foreach ($newExpressions as $newExpr)
+                $methodDependency->addParts($newExpr->class->parts);
+            
             $methodDependencies[] = $methodDependency;
         }
 
         return $methodDependencies;
-
-         /** 
-         * @todo Probably won't work with stuff like (new Thing)->doStuff()
-         */
     }
 
     /**
