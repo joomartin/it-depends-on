@@ -44,6 +44,9 @@ class PhpDependencyParser
 
         /**
          * @todo unique merge
+         * maybe no need for nique search. If Bar is an injected and an inline dependency, then it SHOULD appear twice in the array. Once for an injected and once for 
+         * an inline dep. 
+         * array_merge will overwrite the 'Bar' key, so it will be appear only once.
          */
 
         return array_merge($inline, $injected);
