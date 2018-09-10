@@ -8,15 +8,17 @@ class DependencyGroup implements \Iterator
     public $injected;
     /** @var Dependency[] */
     public $inline;
+    /** @var Dependency[] */
+    public $allDependency;
 
     protected $position;
 
     public function __construct(array $injected, array $inline)
     {
-        // Use array_values to convert an associative array to a simple array
-        // It is required because of Iterator's position
-        $this->injected = array_values($injected);
-        $this->inline = array_values($inline);
+        $this->injected = $injected;
+        $this->inline = $inline;
+
+        $this->allDependency = array_merge(array_values($inline), array_values($injected));
 
         $this->position = 0;
     }
@@ -26,10 +28,7 @@ class DependencyGroup implements \Iterator
      */
     public function current(): Dependency
     {
-        if ($this->position < count($this->inline))
-            return $this->inline[$this->position];
-
-        return $this->injected[$this->position - count($this->inline)];
+        return $this->allDependency[$this->position];
     }
 
     public function key(): int
@@ -49,6 +48,6 @@ class DependencyGroup implements \Iterator
 
     public function valid(): bool
     {
-        return $this->position < count($this->inline) + count($this->injected) && $this->position >= 0;
+        return $this->position < count($this->allDependency);
     }
 }
