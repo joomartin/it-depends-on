@@ -29,6 +29,10 @@ class PhpDependencyParser
         $this->phpParser = $phpParser;    
         $this->nodeFinder = $nodeFinder;
         $this->nodeDumper = new NodeDumper;
+
+        /**
+         * @todo Maybe $ast wannabe class member
+         */
     }
 
     public function parse(string $code): DependencyGroup
@@ -47,26 +51,45 @@ class PhpDependencyParser
     }
 
     /**
-     * Returns all class names that injected to any method, so it appears in the function's parameters with type hint
+     * @return Dependency[]
      */
     protected function getInjectedDependencies(array $ast): array
     {
         $methods = $this->getMethodsWithInjectedDependencies($ast);
-        return $this->getUniqueDependenciesByMethods($methods, self::TYPE_INJECTED);
+        $deps = $this->getUniqueDependenciesByMethods($methods, self::TYPE_INJECTED);
+        $this->setResolvedClassNames($ast, $deps);
+
+        return $deps;
     }
 
     /**
-     * Returns all class names that created in any method
+     * @return Dependency[]
      */
     protected function getInlineDependencies(array $ast): array
     {
         $methods = $this->getMethodsWithInlineDependencies($ast);
-        return $this->getUniqueDependenciesByMethods($methods, self::TYPE_INLINE);
+        $deps = $this->getUniqueDependenciesByMethods($methods, self::TYPE_INLINE);
+        $this->setResolvedClassNames($ast, $deps);
+
+        return $deps;
     }    
 
+    /**
+     * @param Dependency[] $dependencies
+     */
+    protected function setResolvedClassNames(array $ast, array $dependencies)
+    {   
+        foreach ($dependencies as $dep)
+            $dep->fqcn = $this->resolveClassName($ast, $dep->name);
+    }
+
+    /**
+     * @return MethodDependency[]
+     */
     protected function getMethodsWithInjectedDependencies(array $ast): array
     {
         return $this->parseMethods($ast, function ($classMethod) {
+            // @todo CLASS NAME RESOLVE
             $methodDependency = new MethodDependency($classMethod->name->name);
 
             foreach ($classMethod->params as $param) {                            
@@ -84,9 +107,13 @@ class PhpDependencyParser
         });
     }
 
+    /**
+     * @return MethodDependency[]
+     */
     protected function getMethodsWithInlineDependencies(array $ast): array
     {
         return $this->parseMethods($ast, function ($classMethod) {
+            // @todo CLASS NAME RESOLVE
             $methodDependency = new MethodDependency($classMethod->name->name);
 
             $newExpressions = $this->nodeFinder->findInstanceOf($classMethod->stmts, NodeFinderAdapter::NEW_EXPR);            
@@ -114,6 +141,9 @@ class PhpDependencyParser
         );
     }
 
+    /**
+     * @return Dependency[]
+     */
     protected function getUniqueDependenciesByMethods(array $methodDependencies, string $type): array
     {
         $dependencies = [];
@@ -133,6 +163,7 @@ class PhpDependencyParser
 
     /**
      * Returns all class names that accours in use statements at the top of the class
+     * @return string[]
      */
     protected function getUsedDependencies(array $ast): array
     {
@@ -142,6 +173,25 @@ class PhpDependencyParser
         return array_map(function ($name) {
             return join($name->parts, '\\');
         }, $names);
+    }
+
+    protected function resolveClassName(array $ast, string $className)
+    {
+        /**
+         * @todo
+         * MethodDependency and Dependency from ItDependsOn\DependencyParser\Dto
+         * is the same
+         */
+
+        $useStatements = $this->getUsedDependencies($ast);
+        $items = array_filter($useStatements, function (string $fqcn) use ($className) {
+            return strripos($fqcn, $className, 0) === strlen($fqcn) - strlen($className);
+        });
+
+        if (empty($items))
+            return $className;        
+
+        return array_values($items)[0];
     }
 
     protected function dump($ast)

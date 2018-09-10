@@ -5,6 +5,7 @@
         <th>Name</th>
         <th>Type</th>
         <th>Methods</th>
+        <th>FQCN</th>
     </tr>
     {% for dep in dependencies %}
     <tr>
@@ -17,6 +18,7 @@
                 {% endfor %}        
             </ul>            
         </td>
+        <td>{{ dep.fqcn }}</td>
     </tr>
     {% endfor %}
 </table>

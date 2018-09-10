@@ -7,6 +7,8 @@ class Dependency
     /** @var string */
     public $name;
     /** @var string */
+    public $fqcn;
+    /** @var string */
     public $type;
     /** @var array */
     public $methods;

@@ -111,3 +111,9 @@ Kiolvassuk az osztály elején található use listát. Ezt felsoroljuk.
 Ezenkívül pedig végnézzük az összes függvényt, és megkeressük az injektált és inline dependencyket.
 
 Ehhez kell egy Dpeendency konténer osztály.
+
+----
+
+Todo:
+- Egy adott osztálynak megmondani a FQCN -jét. Tehát kelleni fognak a use -ban talált class nevek, és a megtalált inlint, vagy injected függőségeket ki kell onnan keresni. Ha nem találhaó, 
+az optimális esetben azt jelenti, hogy a metódusban az osztály FQCN használták. Vagy bugot.
