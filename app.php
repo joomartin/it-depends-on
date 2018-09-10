@@ -25,7 +25,7 @@ $dumper = new NodeDumper;
 
 foreach ($fileIterator as $file)
 {
-    /** @var Dependency[] $dependencies */
+    /** @var DependencyGroup $dependencies */
     $dependencies = $parser->parse($file->content);
     var_dump($dependencies);
 

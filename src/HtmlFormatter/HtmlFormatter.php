@@ -2,6 +2,9 @@
 
 namespace ItDependsOn\HtmlFormatter;
 
+use ItDependsOn\DependencyParser\Dto\DependencyGroup;
+
+
 class HtmlFormatter
 {
     /** @var \Twig_Environment */
@@ -13,7 +16,7 @@ class HtmlFormatter
         $this->twig = new \Twig_Environment($loader);
     }
 
-    public function getHtml(array $dependencies): string
+    public function getHtml(DependencyGroup $dependencies): string
     {
         return $this->twig->render('dependency-table.html', compact('dependencies'));
     }
